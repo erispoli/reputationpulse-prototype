@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReputationPulse — Agentic Intelligence Platform</title>
+<style>
+  /* ─── Reset & Base ─────────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg:       #0a0d14;
+    --bg2:      #10141f;
+    --bg3:      #161b2a;
+    --bg4:      #1c2236;
+    --border:   #232b42;
+    --text:     #e2e8f0;
+    --muted:    #6b7a99;
+    --accent:   #4f8ef7;
+    --accent2:  #7c5cfc;
+    --green:    #22d3a5;
+    --orange:   #f59e42;
+    --red:      #f04f5e;
+    --yellow:   #fbbf24;
+    --pulse:    rgba(79,142,247,0.15);
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif;
+         font-size: 13px; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+  /* ─── Scrollbar ─────────────────────────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ─── Top Bar ────────────────────────────────────────────────────────────── */
+  #topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 20px; height: 52px; background: var(--bg2);
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
+    position: relative; z-index: 10;
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 28px; height: 28px; background: linear-gradient(135deg,var(--accent),var(--accent2));
+               border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .logo-text { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+  .logo-text span { color: var(--accent); }
+  .topbar-center { display: flex; align-items: center; gap: 24px; }
+  .score-ring { position: relative; width: 44px; height: 44px; }
+  .score-ring svg { transform: rotate(-90deg); }
+  .score-val { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+               font-size: 11px; font-weight: 700; color: var(--green); }
+  .score-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .score-group { display: flex; align-items: center; gap: 8px; }
+  .score-trend { font-size: 11px; color: var(--green); }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+           display: flex; align-items: center; gap: 5px; }
+  .badge-green { background: rgba(34,211,165,.12); color: var(--green); border: 1px solid rgba(34,211,165,.25); }
+  .badge-orange { background: rgba(245,158,66,.12); color: var(--orange); border: 1px solid rgba(245,158,66,.25); }
+  .badge-red { background: rgba(240,79,94,.12); color: var(--red); border: 1px solid rgba(240,79,94,.25); }
+  .dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dot-green { background: var(--green); animation: pulse-green 1.5s infinite; }
+  .dot-orange { background: var(--orange); }
+  .dot-red { background: var(--red); animation: pulse-red 0.8s infinite; }
+  @keyframes pulse-green { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
+  @keyframes pulse-red   { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(1.4)} }
+  .time-display { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .brand-selector { background: var(--bg3); border: 1px solid var(--border); border-radius: 6px;
+                    padding: 4px 10px; font-size: 12px; color: var(--text); cursor: pointer;
+                    display: flex; align-items: center; gap: 6px; }
+  .brand-avatar { width: 20px; height: 20px; border-radius: 50%; background: linear-gradient(135deg,#4f8ef7,#7c5cfc);
+                  display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; }
+
+  /* ─── Alert Bar ──────────────────────────────────────────────────────────── */
+  #alertbar {
+    background: rgba(240,79,94,.08); border-bottom: 1px solid rgba(240,79,94,.3);
+    padding: 7px 20px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    transition: all .3s; cursor: pointer;
+  }
+  #alertbar.hidden { display: none; }
+  .alert-icon { font-size: 14px; }
+  .alert-text { flex: 1; font-size: 12px; }
+  .alert-text strong { color: var(--red); }
+  .alert-actions { display: flex; gap: 8px; }
+  .btn-sm { padding: 4px 12px; border-radius: 5px; font-size: 11px; font-weight: 600; cursor: pointer;
+            border: none; transition: all .15s; }
+  .btn-red { background: var(--red); color: #fff; }
+  .btn-ghost { background: var(--border); color: var(--text); }
+  .btn-red:hover { background: #d93d4f; }
+  .btn-ghost:hover { background: var(--bg4); }
+  .alert-agent { font-size: 10px; color: var(--muted); }
+
+  /* ─── Main Layout ────────────────────────────────────────────────────────── */
+  #main { display: grid; grid-template-columns: 260px 1fr 300px; flex: 1; overflow: hidden; }
+
+  /* ─── Left Panel: Agent Fleet ────────────────────────────────────────────── */
+  #agents-panel {
+    background: var(--bg2); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .panel-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .8px; color: var(--muted); display: flex;
+    align-items: center; justify-content: space-between;
+  }
+  .panel-header-count { background: var(--accent); color: #fff; border-radius: 10px;
+                         padding: 1px 7px; font-size: 10px; font-weight: 700; }
+  .agents-list { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+
+  .agent-card {
+    background: var(--bg3); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px; cursor: pointer; transition: all .2s; position: relative; overflow: hidden;
+  }
+  .agent-card:hover { border-color: var(--accent); background: var(--bg4); }
+  .agent-card.active { border-color: var(--accent); }
+  .agent-card.working { border-color: var(--accent2); animation: card-glow .8s ease-in-out infinite alternate; }
+  .agent-card.alert { border-color: var(--red); animation: card-alert .6s ease-in-out infinite alternate; }
+  @keyframes card-glow  { from{box-shadow:0 0 0 rgba(124,92,252,0)} to{box-shadow:0 0 10px rgba(124,92,252,.3)} }
+  @keyframes card-alert { from{box-shadow:0 0 0 rgba(240,79,94,0)} to{box-shadow:0 0 10px rgba(240,79,94,.4)} }
+  .agent-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .agent-emoji { font-size: 18px; }
+  .agent-info { flex: 1; }
+  .agent-name { font-size: 12px; font-weight: 700; }
+  .agent-role { font-size: 10px; color: var(--muted); }
+  .agent-status { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px; }
+  .status-active  { background: rgba(34,211,165,.15); color: var(--green); }
+  .status-working { background: rgba(124,92,252,.15); color: var(--accent2); }
+  .status-idle    { background: rgba(107,122,153,.15); color: var(--muted); }
+  .status-alert   { background: rgba(240,79,94,.15); color: var(--red); }
+  .agent-task { font-size: 11px; color: var(--muted); margin-bottom: 8px; line-height: 1.4; }
+  .agent-task.active-task { color: var(--text); }
+  .agent-progress { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .agent-progress-bar { height: 100%; border-radius: 2px; transition: width .5s; }
+  .prog-accent  { background: linear-gradient(90deg,var(--accent),var(--accent2)); }
+  .prog-green   { background: var(--green); }
+  .prog-red     { background: var(--red); }
+  .agent-meta { display: flex; justify-content: space-between; margin-top: 6px; font-size: 10px; color: var(--muted); }
+  .confidence { color: var(--accent); font-weight: 600; }
+
+  /* ─── Center Panel ───────────────────────────────────────────────────────── */
+  #center-panel { display: flex; flex-direction: column; overflow: hidden; }
+
+  /* Tab bar */
+  .tabs { display: flex; background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 16px; flex-shrink: 0; }
+  .tab { padding: 12px 16px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--muted);
+         border-bottom: 2px solid transparent; transition: all .2s; white-space: nowrap; }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:hover:not(.active) { color: var(--text); }
+
+  /* Tab contents */
+  .tab-content { display: none; flex: 1; overflow-y: auto; padding: 16px; }
+  .tab-content.active { display: flex; flex-direction: column; gap: 14px; }
+
+  /* Reputation Score Overview */
+  .overview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .metric-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .metric-label { font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); margin-bottom: 6px; }
+  .metric-value { font-size: 24px; font-weight: 800; line-height: 1; }
+  .metric-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .metric-up { color: var(--green); }
+  .metric-down { color: var(--red); }
+  .metric-neutral { color: var(--orange); }
+
+  /* Chart area */
+  .chart-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .chart-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .chart-sub { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+  canvas { width: 100%; }
+
+  /* Platform pills */
+  .platform-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; }
+  .platform-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+                   display: flex; align-items: center; gap: 10px; }
+  .platform-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center;
+                   justify-content: center; font-size: 16px; }
+  .platform-data { flex: 1; }
+  .platform-name { font-size: 11px; font-weight: 700; }
+  .platform-sentiment { font-size: 12px; font-weight: 800; }
+  .platform-bar { height: 3px; background: var(--border); border-radius: 2px; margin-top: 4px; overflow: hidden; }
+  .platform-bar-inner { height: 100%; border-radius: 2px; transition: width 1s; }
+  .pbar-green  { background: var(--green); }
+  .pbar-orange { background: var(--orange); }
+  .pbar-red    { background: var(--red); }
+  .pbar-blue   { background: var(--accent); }
+
+  /* Activity feed */
+  .feed { display: flex; flex-direction: column; gap: 6px; }
+  .feed-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px;
+               padding: 10px 12px; display: flex; gap: 10px; align-items: flex-start;
+               animation: feedIn .3s ease; }
+  @keyframes feedIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+  .feed-icon { font-size: 14px; margin-top: 1px; }
+  .feed-body { flex: 1; }
+  .feed-title { font-size: 12px; font-weight: 600; }
+  .feed-detail { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .feed-meta { display: flex; gap: 8px; margin-top: 4px; align-items: center; }
+  .feed-agent { font-size: 10px; background: var(--bg3); border: 1px solid var(--border);
+                border-radius: 8px; padding: 1px 7px; color: var(--accent); font-weight: 600; }
+  .feed-time { font-size: 10px; color: var(--muted); }
+  .feed-sentiment { font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 8px; }
+  .sent-neg { background: rgba(240,79,94,.12); color: var(--red); }
+  .sent-pos { background: rgba(34,211,165,.12); color: var(--green); }
+  .sent-neu { background: rgba(107,122,153,.12); color: var(--muted); }
+
+  /* Agent workflow diagram */
+  .workflow { display: flex; flex-direction: column; gap: 8px; }
+  .wf-step { display: flex; align-items: flex-start; gap: 12px; }
+  .wf-line-col { display: flex; flex-direction: column; align-items: center; }
+  .wf-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
+               justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .wf-circle.done { background: rgba(34,211,165,.15); color: var(--green); border: 1.5px solid var(--green); }
+  .wf-circle.running { background: rgba(124,92,252,.15); color: var(--accent2); border: 1.5px solid var(--accent2);
+                        animation: wf-spin 2s linear infinite; }
+  .wf-circle.pending { background: var(--bg3); color: var(--muted); border: 1.5px solid var(--border); }
+  @keyframes wf-spin { 0%{box-shadow:0 0 0 0 rgba(124,92,252,.4)} 70%{box-shadow:0 0 0 6px rgba(124,92,252,0)} 100%{box-shadow:0 0 0 0 rgba(124,92,252,0)} }
+  .wf-connector { width: 2px; flex: 1; min-height: 12px; background: var(--border); margin: 3px 0; }
+  .wf-connector.active { background: var(--green); }
+  .wf-content { flex: 1; padding-bottom: 10px; }
+  .wf-title { font-size: 12px; font-weight: 700; }
+  .wf-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .wf-agent-tag { display: inline-block; font-size: 10px; background: var(--bg3); border: 1px solid var(--border);
+                  border-radius: 6px; padding: 1px 7px; color: var(--accent2); font-weight: 600; margin-top: 4px; }
+
+  /* Chat interface */
+  #chat-container { display: flex; flex-direction: column; height: 100%; }
+  #chat-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .msg { display: flex; gap: 8px; }
+  .msg-agent { }
+  .msg-user { flex-direction: row-reverse; }
+  .msg-avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center;
+                justify-content: center; font-size: 14px; flex-shrink: 0; background: var(--bg3); }
+  .msg-bubble { max-width: 80%; padding: 10px 13px; border-radius: 12px; font-size: 12px; line-height: 1.5; }
+  .msg-agent .msg-bubble { background: var(--bg3); border: 1px solid var(--border); }
+  .msg-user .msg-bubble  { background: var(--accent); color: #fff; }
+  .msg-meta { font-size: 10px; color: var(--muted); margin-top: 3px; }
+  .msg-user .msg-meta { text-align: right; }
+  .typing-indicator { display: flex; gap: 4px; align-items: center; padding: 6px 0; }
+  .typing-dot { width: 6px; height: 6px; background: var(--muted); border-radius: 50%;
+                animation: typing 1.2s infinite; }
+  .typing-dot:nth-child(2) { animation-delay: .2s; }
+  .typing-dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes typing { 0%,80%,100%{transform:scale(1)} 40%{transform:scale(1.3)} }
+  #chat-input-area { display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border); margin-top: 12px; flex-shrink: 0; }
+  #chat-input { flex: 1; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px;
+                color: var(--text); padding: 8px 12px; font-size: 12px; outline: none; resize: none; height: 60px; }
+  #chat-input:focus { border-color: var(--accent); }
+  #chat-send { background: var(--accent); color: #fff; border: none; border-radius: 8px;
+               padding: 8px 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s;
+               align-self: flex-end; }
+  #chat-send:hover { background: #3a7de8; }
+  .agent-selector { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .agent-sel-btn { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+                   cursor: pointer; border: 1.5px solid var(--border); background: transparent;
+                   color: var(--muted); transition: all .2s; }
+  .agent-sel-btn.selected { border-color: var(--accent); color: var(--accent); background: rgba(79,142,247,.1); }
+
+  /* ─── Right Panel: Approval Queue + Insights ─────────────────────────────── */
+  #right-panel {
+    background: var(--bg2); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .approval-list { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .approval-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .approval-card.urgent { border-color: rgba(240,79,94,.4); background: rgba(240,79,94,.04); }
+  .approval-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .approval-type { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); }
+  .urgency { font-size: 10px; padding: 1px 7px; border-radius: 8px; }
+  .urgency-high   { background: rgba(240,79,94,.12);  color: var(--red); }
+  .urgency-med    { background: rgba(245,158,66,.12); color: var(--orange); }
+  .urgency-low    { background: rgba(34,211,165,.12); color: var(--green); }
+  .approval-title { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .approval-desc { font-size: 11px; color: var(--muted); line-height: 1.4; margin-bottom: 8px; }
+  .approval-preview { background: var(--bg2); border: 1px solid var(--border); border-radius: 6px;
+                       padding: 8px 10px; font-size: 11px; color: var(--text); line-height: 1.5;
+                       margin-bottom: 8px; font-style: italic; }
+  .approval-btns { display: flex; gap: 6px; }
+  .btn-approve { background: rgba(34,211,165,.12); color: var(--green); border: 1px solid rgba(34,211,165,.3);
+                  border-radius: 6px; padding: 5px 12px; font-size: 11px; font-weight: 600; cursor: pointer;
+                  transition: all .2s; flex: 1; }
+  .btn-approve:hover { background: rgba(34,211,165,.22); }
+  .btn-reject  { background: rgba(240,79,94,.08); color: var(--red); border: 1px solid rgba(240,79,94,.25);
+                  border-radius: 6px; padding: 5px 12px; font-size: 11px; font-weight: 600; cursor: pointer;
+                  transition: all .2s; flex: 1; }
+  .btn-reject:hover { background: rgba(240,79,94,.15); }
+  .btn-edit    { background: var(--border); color: var(--text); border: none;
+                  border-radius: 6px; padding: 5px 12px; font-size: 11px; font-weight: 600; cursor: pointer; }
+  .confidence-bar { height: 2px; background: var(--border); border-radius: 1px; margin: 6px 0 8px; overflow: hidden; }
+  .confidence-fill { height: 100%; border-radius: 1px; }
+  .conf-high   { background: var(--green); }
+  .conf-med    { background: var(--orange); }
+  .approval-conf-label { font-size: 10px; color: var(--muted); margin-top: -4px; margin-bottom: 6px; }
+
+  /* Insight section */
+  .insight-section { border-top: 1px solid var(--border); padding: 10px; flex-shrink: 0; }
+  .insight-title { font-size: 10px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted);
+                   margin-bottom: 8px; font-weight: 700; }
+  .insight-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px; background: var(--bg3);
+                  border-radius: 8px; border: 1px solid var(--border); margin-bottom: 6px; }
+  .insight-emoji { font-size: 14px; }
+  .insight-text { font-size: 11px; line-height: 1.4; flex: 1; }
+  .insight-text strong { color: var(--accent); }
+
+  /* ─── Divider utility ────────────────────────────────────────────────────── */
+  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px;
+                   color: var(--muted); margin-bottom: 8px; }
+
+  /* ─── Platform icons ─────────────────────────────────────────────────────── */
+  .pi-x    { background: rgba(255,255,255,.08); }
+  .pi-ig   { background: linear-gradient(135deg,#f58529,#dd2a7b,#8134af); }
+  .pi-fb   { background: rgba(24,119,242,.2); }
+  .pi-li   { background: rgba(0,119,181,.2); }
+  .pi-news { background: rgba(79,142,247,.15); }
+  .pi-tik  { background: rgba(105,201,208,.15); }
+
+  /* ─── Buttons ────────────────────────────────────────────────────────────── */
+  .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 7px;
+                  padding: 7px 16px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all .15s; }
+  .btn-primary:hover { background: #3a7de8; }
+
+  /* ─── Animations ─────────────────────────────────────────────────────────── */
+  .shimmer { animation: shimmer 2s infinite; }
+  @keyframes shimmer { 0%{opacity:.6} 50%{opacity:1} 100%{opacity:.6} }
+
+  /* ─── Notification toast ─────────────────────────────────────────────────── */
+  #toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column;
+                     gap: 8px; z-index: 1000; pointer-events: none; }
+  .toast { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px;
+           padding: 10px 14px; font-size: 12px; min-width: 240px; max-width: 320px;
+           animation: toastIn .3s ease; box-shadow: 0 8px 24px rgba(0,0,0,.4); pointer-events: all; }
+  .toast.toast-success { border-color: rgba(34,211,165,.4); }
+  .toast.toast-warning { border-color: rgba(245,158,66,.4); }
+  .toast.toast-error   { border-color: rgba(240,79,94,.4);  }
+  @keyframes toastIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
+  .toast-out { animation: toastOut .3s ease forwards; }
+  @keyframes toastOut { to{opacity:0;transform:translateX(20px)} }
+
+  /* Agent Network visualization */
+  #network-canvas { width: 100%; height: 100%; }
+
+  /* Platform score bars */
+  .score-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .score-bar-label { font-size: 11px; width: 70px; color: var(--muted); }
+  .score-bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+  .score-bar-fill { height: 100%; border-radius: 3px; transition: width 1s; }
+  .score-bar-val { font-size: 11px; width: 30px; text-align: right; font-weight: 700; }
+
+  /* Goals panel */
+  .goal-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .goal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .goal-name { font-size: 13px; font-weight: 700; }
+  .goal-deadline { font-size: 10px; color: var(--muted); }
+  .goal-progress-wrap { margin-bottom: 8px; }
+  .goal-progress-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+  .goal-progress-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg,var(--accent),var(--accent2)); transition: width 1s; }
+  .goal-stats { display: flex; gap: 16px; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+  .goal-stat-val { color: var(--text); font-weight: 700; }
+  .goal-agents { display: flex; gap: 4px; }
+  .goal-agent-tag { font-size: 10px; background: var(--bg2); border: 1px solid var(--border);
+                     border-radius: 6px; padding: 1px 7px; color: var(--accent2); }
+</style>
+</head>
+<body>
+
+<!-- ─── TOP BAR ─────────────────────────────────────────────────────────── -->
+<div id="topbar">
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div class="logo-text">Reputation<span>Pulse</span></div>
+    <div style="width:1px;height:20px;background:var(--border);margin:0 6px"></div>
+    <div style="font-size:11px;color:var(--muted)">Agentic Intelligence Platform</div>
+  </div>
+  <div class="topbar-center">
+    <div class="brand-selector">
+      <div class="brand-avatar">R</div>
+      <span>Reply S.p.A.</span>
+      <span style="color:var(--muted)">▾</span>
+    </div>
+    <div class="score-group">
+      <div class="score-ring">
+        <svg width="44" height="44" viewBox="0 0 44 44">
+          <circle cx="22" cy="22" r="17" fill="none" stroke="var(--border)" stroke-width="3"/>
+          <circle cx="22" cy="22" r="17" fill="none" stroke="var(--green)" stroke-width="3"
+                  stroke-dasharray="106.8" stroke-dashoffset="21.4" stroke-linecap="round"/>
+        </svg>
+        <div class="score-val" id="top-score">80</div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700">Reputation Score</div>
+        <div class="score-trend" id="score-trend">↑ +3.2 this week</div>
+      </div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="badge badge-green"><div class="dot dot-green"></div><span id="agents-active-count">5 agents</span> active</div>
+    <div class="badge badge-orange"><div class="dot dot-orange"></div><span id="approval-count">2 pending</span> approvals</div>
+    <div class="badge badge-red" id="crisis-badge"><div class="dot dot-red"></div>1 alert</div>
+    <div class="time-display" id="clock">--:--:--</div>
+  </div>
+</div>
+
+<!-- ─── ALERT BAR ────────────────────────────────────────────────────────── -->
+<div id="alertbar">
+  <div class="alert-icon">🚨</div>
+  <div class="alert-text">
+    <strong>CRISIS DETECTED</strong> — Negative spike on X/Twitter: article about data privacy concerns reaching 12K impressions in 2h. Sentiment −68. <span class="alert-agent">Detected by: Guardian Agent</span>
+  </div>
+  <div class="alert-actions">
+    <button class="btn-sm btn-red" onclick="activateCrisisWorkflow()">▶ Activate Crisis Protocol</button>
+    <button class="btn-sm btn-ghost" onclick="dismissAlert()">Dismiss</button>
+  </div>
+</div>
+
+<!-- ─── MAIN ─────────────────────────────────────────────────────────────── -->
+<div id="main">
+
+  <!-- ══ LEFT: Agent Fleet ══════════════════════════════════════════════════ -->
+  <div id="agents-panel">
+    <div class="panel-header">
+      Agent Fleet
+      <span class="panel-header-count" id="fleet-count">7</span>
+    </div>
+    <div class="agents-list" id="agents-list">
+      <!-- Populated by JS -->
+    </div>
+  </div>
+
+  <!-- ══ CENTER ════════════════════════════════════════════════════════════ -->
+  <div id="center-panel">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('overview',this)">📊 Overview</div>
+      <div class="tab" onclick="switchTab('feed',this)">📡 Live Feed</div>
+      <div class="tab" onclick="switchTab('workflow',this)">⚙️ Crisis Workflow</div>
+      <div class="tab" onclick="switchTab('goals',this)">🎯 Goals</div>
+      <div class="tab" onclick="switchTab('chat',this)">💬 Agent Chat</div>
+      <div class="tab" onclick="switchTab('network',this)">🕸 Agent Network</div>
+    </div>
+
+    <!-- TAB: OVERVIEW -->
+    <div id="tab-overview" class="tab-content active">
+      <div class="overview-grid">
+        <div class="metric-card">
+          <div class="metric-label">Reputation Score</div>
+          <div class="metric-value metric-up" id="rep-score">80.4</div>
+          <div class="metric-sub metric-up">↑ +3.2 vs last week</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Mentions Today</div>
+          <div class="metric-value" id="mentions-count">2,847</div>
+          <div class="metric-sub metric-up">↑ +14% vs avg</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Positive Sentiment</div>
+          <div class="metric-value metric-up" id="pos-sent">64%</div>
+          <div class="metric-sub metric-up">↑ +8pp this month</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Active Crises</div>
+          <div class="metric-value metric-down" id="crises-count">1</div>
+          <div class="metric-sub metric-neutral">Guardian escalated</div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Reputation Score — 30 Days</div>
+        <div class="chart-sub">With agent interventions highlighted</div>
+        <canvas id="repChart" height="100"></canvas>
+      </div>
+
+      <div>
+        <div class="section-title">Platform Sentiment Breakdown</div>
+        <div class="platform-grid">
+          <div class="platform-card">
+            <div class="platform-icon pi-x">𝕏</div>
+            <div class="platform-data">
+              <div class="platform-name">X / Twitter</div>
+              <div class="platform-sentiment metric-down">−68 <span style="font-size:10px;color:var(--muted)">/ crisis</span></div>
+              <div class="platform-bar"><div class="platform-bar-inner pbar-red" style="width:28%"></div></div>
+            </div>
+          </div>
+          <div class="platform-card">
+            <div class="platform-icon pi-ig">📸</div>
+            <div class="platform-data">
+              <div class="platform-name">Instagram</div>
+              <div class="platform-sentiment metric-up">+82 <span style="font-size:10px;color:var(--muted)">/ Vibe ✓</span></div>
+              <div class="platform-bar"><div class="platform-bar-inner pbar-green" style="width:82%"></div></div>
+            </div>
+          </div>
+          <div class="platform-card">
+            <div class="platform-icon pi-li">in</div>
+            <div class="platform-data">
+              <div class="platform-name">LinkedIn</div>
+              <div class="platform-sentiment metric-up">+71</div>
+              <div class="platform-bar"><div class="platform-bar-inner pbar-green" style="width:71%"></div></div>
+            </div>
+          </div>
+          <div class="platform-card">
+            <div class="platform-icon pi-news">📰</div>
+            <div class="platform-data">
+              <div class="platform-name">News / Press</div>
+              <div class="platform-sentiment metric-neutral">+34</div>
+              <div class="platform-bar"><div class="platform-bar-inner pbar-orange" style="width:55%"></div></div>
+            </div>
+          </div>
+          <div class="platform-card">
+            <div class="platform-icon pi-fb">f</div>
+            <div class="platform-data">
+              <div class="platform-name">Facebook</div>
+              <div class="platform-sentiment metric-up">+58</div>
+              <div class="platform-bar"><div class="platform-bar-inner pbar-blue" style="width:58%"></div></div>
+            </div>
+          </div>
+          <div class="platform-card">
+            <div class="platform-icon pi-tik">♪</div>
+            <div class="platform-data">
+              <div class="platform-name">TikTok</div>
+              <div class="platform-sentiment metric-up">+63</div>
+              <div class="platform-bar"><div class="platform-bar-inner pbar-green" style="width:63%"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: LIVE FEED -->
+    <div id="tab-feed" class="tab-content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div class="section-title">Real-time Agent Activity Feed</div>
+        <div class="badge badge-green"><div class="dot dot-green"></div>live</div>
+      </div>
+      <div class="feed" id="feed-container">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+
+    <!-- TAB: WORKFLOW -->
+    <div id="tab-workflow" class="tab-content">
+      <div class="section-title" style="color:var(--red)">🚨 Crisis Response Workflow — Active</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px">
+        Triggered: X/Twitter negative spike — Data Privacy Article | <strong style="color:var(--orange)">ETA resolution: ~12 min</strong>
+      </div>
+      <div class="workflow" id="workflow-steps"></div>
+    </div>
+
+    <!-- TAB: GOALS -->
+    <div id="tab-goals" class="tab-content">
+      <div class="section-title">Strategic Reputation Goals</div>
+      <div style="display:flex;flex-direction:column;gap:10px" id="goals-container"></div>
+    </div>
+
+    <!-- TAB: CHAT -->
+    <div id="tab-chat" class="tab-content">
+      <div class="section-title">Talk to an Agent</div>
+      <div class="agent-selector" id="agent-selector"></div>
+      <div id="chat-container">
+        <div id="chat-messages"></div>
+        <div id="chat-input-area">
+          <textarea id="chat-input" placeholder="Ask an agent… e.g. 'What is the root cause of the current crisis?'" onkeydown="chatKeydown(event)"></textarea>
+          <button id="chat-send" onclick="sendChat()">Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: NETWORK -->
+    <div id="tab-network" class="tab-content">
+      <div class="section-title">Agent Collaboration Network</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Real-time visualization of inter-agent communication and task delegation</div>
+      <canvas id="network-canvas" height="380"></canvas>
+    </div>
+
+  </div>
+
+  <!-- ══ RIGHT: Approval Queue ═════════════════════════════════════════════ -->
+  <div id="right-panel">
+    <div class="panel-header">
+      Approval Queue
+      <span class="panel-header-count" id="queue-count">2</span>
+    </div>
+    <div class="approval-list" id="approval-list">
+      <!-- Populated by JS -->
+    </div>
+    <div class="insight-section">
+      <div class="insight-title">Agent Insights</div>
+      <div class="insight-item">
+        <div class="insight-emoji">🔮</div>
+        <div class="insight-text"><strong>Oracle:</strong> If the current crisis lasts >3h, reputation score may drop <strong>−6.4 pts</strong>. Recommend rapid response.</div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-emoji">🎯</div>
+        <div class="insight-text"><strong>Intel:</strong> Competitor TechGroup had a similar crisis last month. Their response time was 47 min — stock dropped 2.1%.</div>
+      </div>
+      <div class="insight-item">
+        <div class="insight-emoji">💡</div>
+        <div class="insight-text"><strong>Strategist:</strong> Scheduling a LinkedIn transparency post in the next 30 min could offset <strong>+4.1 pts</strong> on sentiment.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const AGENTS = [
+  { id:'sentinel', emoji:'👁', name:'Sentinel',   role:'Monitoring Agent',   status:'alert',   task:'CRISIS: Tracking X/Twitter negative spike — 12K impressions', progress:90, conf:98, progColor:'prog-red' },
+  { id:'guardian', emoji:'🛡', name:'Guardian',   role:'Crisis Defense Agent', status:'working', task:'Coordinating crisis response protocol — Step 3/6',          progress:55, conf:91, progColor:'prog-accent' },
+  { id:'analyst',  emoji:'🧠', name:'Analyst',    role:'Sentiment Analysis Agent', status:'working', task:'Deep-dive: classifying 847 X posts — NLP pipeline running', progress:67, conf:94, progColor:'prog-accent' },
+  { id:'strategist',emoji:'🎯',name:'Strategist', role:'Next Best Action Agent', status:'working', task:'Drafting crisis PR response — awaiting human approval',     progress:80, conf:86, progColor:'prog-accent' },
+  { id:'oracle',   emoji:'🔮', name:'Oracle',     role:'Predictive Agent',    status:'active',  task:'Forecasting reputation impact — 3 scenarios computed',        progress:100, conf:89, progColor:'prog-green' },
+  { id:'intel',    emoji:'🕵', name:'Intel',      role:'Competitive Intel Agent', status:'active', task:'Monitoring 4 competitors — no anomalies detected',           progress:100, conf:97, progColor:'prog-green' },
+  { id:'narrator', emoji:'📝', name:'Narrator',   role:'Reporting Agent',     status:'idle',    task:'Idle — next exec report in 4h 22m',                           progress:0,   conf:99, progColor:'prog-green' },
+];
+
+const APPROVALS = [
+  {
+    id:'ap1', type:'PR Response', urgency:'high', urgent:true,
+    title:'Reply to @DataPrivacyNow viral thread',
+    desc:'Guardian + Strategist co-drafted a crisis response to a viral thread accusing Reply of data misuse. Confidence: 86%. Tone: transparent, factual, empathetic.',
+    preview: '"We take data privacy seriously. Here\'s a clear overview of our practices and what we\'re doing to improve transparency for all stakeholders…"',
+    conf:86, confClass:'conf-med'
+  },
+  {
+    id:'ap2', type:'LinkedIn Post', urgency:'med', urgent:false,
+    title:'Proactive transparency post — LinkedIn',
+    desc:'Oracle + Strategist suggest publishing a thought-leadership post within 30 min to shift narrative. Predicted +4.1 pts on sentiment score.',
+    preview: '"At Reply, trust is our foundation. Today we\'re sharing our updated data governance framework and the steps we\'ve taken in 2025 to exceed EU standards…"',
+    conf:92, confClass:'conf-high'
+  }
+];
+
+const WORKFLOW_STEPS = [
+  { status:'done',    title:'Spike Detection',       desc:'Sentinel detected: −68 sentiment spike on X — 12,400 impressions in 2h',     agent:'Sentinel' },
+  { status:'done',    title:'Root Cause Analysis',   desc:'Analyst classified 847 posts: 68% traceable to @DataPrivacyNow article + 3 micro-influencers', agent:'Analyst' },
+  { status:'done',    title:'Scenario Forecasting',  desc:'Oracle computed 3 scenarios: ignore (−6.4 pts), slow response (−3.1 pts), rapid response (−0.8 pts)', agent:'Oracle' },
+  { status:'running', title:'Response Drafting',     desc:'Strategist drafting PR response & LinkedIn post — awaiting human approval',  agent:'Strategist' },
+  { status:'pending', title:'Human Approval',        desc:'Approval required before publishing: X reply + LinkedIn post',               agent:'You' },
+  { status:'pending', title:'Deployment & Monitoring',desc:'Guardian publishes approved content; Sentinel tracks sentiment recovery',    agent:'Guardian + Sentinel' },
+];
+
+const GOALS = [
+  { name:'Recover Reputation Score to 83+', deadline:'End of Q2 2026', progress:68, current:80.4, target:83, agents:['Oracle','Strategist','Narrator'] },
+  { name:'Reduce Crisis Response Time to <15 min', deadline:'Apr 2026', progress:72, current:'18 min', target:'<15 min', agents:['Guardian','Sentinel','Analyst'] },
+  { name:'Grow Positive Sentiment on LinkedIn to 80%', deadline:'Jun 2026', progress:89, current:'71%', target:'80%', agents:['Strategist','Intel'] },
+  { name:'Zero High-Severity Crises in 30 days', deadline:'Rolling', progress:40, current:'1 active', target:'0', agents:['Sentinel','Guardian'] },
+];
+
+const FEED_EVENTS = [
+  { icon:'🚨', title:'CRISIS: X/Twitter Sentiment Spike Detected', detail:'12,400 impressions in 2h — triggering crisis protocol automatically. Virality Score: 8.4/10', agent:'Sentinel', time:'just now', sentiment:'neg', sentLabel:'−68' },
+  { icon:'🧠', title:'Sentiment Analysis Complete — X Crisis Posts', detail:'847 posts classified: 68% linked to @DataPrivacyNow article. Top emotions: distrust (41%), concern (29%). NER: "data breach" +340%', agent:'Analyst', time:'1m ago', sentiment:'neg', sentLabel:'alert' },
+  { icon:'🔮', title:'Forecast Ready: 3 Reputation Scenarios', detail:'Scenario A (no action): −6.4 pts. B (delayed response): −3.1 pts. C (rapid response within 20min): −0.8 pts', agent:'Oracle', time:'2m ago', sentiment:'neu', sentLabel:'forecast' },
+  { icon:'🕵', title:'Competitive Benchmark — No Similar Crises', detail:'4 monitored competitors clear. TechGroup had similar incident Mar 25 — public apology in 47min, −2.1% stock impact.', agent:'Intel', time:'3m ago', sentiment:'neu', sentLabel:'insight' },
+  { icon:'🎯', title:'PR Draft Ready for Approval', detail:'Co-authored X reply + LinkedIn post. Tone: transparent & empathetic. Estimated reach: 45K. Confidence: 86%.', agent:'Strategist', time:'4m ago', sentiment:'pos', sentLabel:'draft' },
+  { icon:'📊', title:'Instagram Vibe Check — Positive Momentum', detail:'VibeCheck AI score: +82. Top content: corporate culture series (+14% engagement WoW). Opportunity: amplify with Reels.', agent:'Sentinel', time:'8m ago', sentiment:'pos', sentLabel:'+82' },
+  { icon:'🛡', title:'Crisis Protocol Activated — Step 3/6', detail:'Guardian coordinating response team. Stakeholders notified: PR lead, Legal, CEO office. SLA: 12 minutes to first public response.', agent:'Guardian', time:'9m ago', sentiment:'neu', sentLabel:'active' },
+];
+
+const CHAT_RESPONSES = {
+  sentinel: [
+    "Currently tracking the X/Twitter crisis: 12,400 impressions in 2h, sentiment −68. The spike originated from an article by @DataPrivacyNow published 3h ago. I'm monitoring 6 social channels in real-time.",
+    "The X/Twitter spike is showing signs of plateau — growth rate slowed from +840 impressions/h to +510 in the last 30 minutes. This may indicate the narrative hasn't reached mainstream amplification yet.",
+    "Instagram and LinkedIn remain positive. The crisis appears contained to X and 3 tech-focused news outlets. I recommend focusing the response strategy on those channels first."
+  ],
+  analyst: [
+    "Root cause analysis complete. 68% of negative posts are traceable to a single article. The remaining 32% are organic amplification by users concerned about EU data regulation. Key NER entities: 'data breach' (+340%), 'GDPR' (+220%), 'Reply S.p.A.' (+180%).",
+    "Sentiment decomposition: 41% distrust, 29% concern, 18% anger, 12% curiosity/neutral. The 'curiosity' segment is actually an opportunity — these users are open to transparent communication.",
+    "I've identified 3 micro-influencers (8K–22K followers) driving amplification. I can provide their profiles to Strategist for targeted outreach if you approve."
+  ],
+  strategist: [
+    "I've drafted two pieces for your approval: (1) a direct X/Twitter reply thread addressing the data privacy claims with specific facts and links to our governance documentation, and (2) a LinkedIn thought-leadership post framing our data practices proactively. Both are in the approval queue.",
+    "Based on Oracle's forecast, acting within the next 8 minutes maximizes impact. I recommend approving the X reply first, then the LinkedIn post. Estimated sentiment recovery: +3.8 pts over 24h.",
+    "Long-term recommendation: schedule a monthly transparency digest (email + LinkedIn) to proactively manage narrative. Intel data shows competitors with regular transparency comms have 23% fewer reactive crises."
+  ],
+  oracle: [
+    "I've modeled 3 scenarios. Best case (rapid transparent response within 20 min): reputation score drops only −0.8 pts, recovering to baseline within 48h. Worst case (no response for 6h+): −6.4 pts with a 7-day recovery window.",
+    "Predictive alert: if the article reaches 25K impressions (currently 12K), the probability of mainstream media pickup increases to 34%. You have approximately 45 minutes before that threshold.",
+    "Historical pattern match: this crisis profile is 78% similar to the 'LogiGroup Data Incident' of Oct 2024. In that case, a CEO statement reduced sentiment damage by 60%. I recommend escalating if no public response within 15 minutes."
+  ],
+  guardian: [
+    "Crisis protocol is at Step 3/6. I've notified PR lead, Legal team, and CEO office. SLA target is public response within 12 minutes. Strategist has drafts ready for your approval. What's your decision?",
+    "All escalation paths are armed. If you approve the draft in the next 5 minutes, we're within SLA. If not, I'll escalate to VP Communications automatically per crisis protocol P2.",
+    "Post-crisis, I'll generate a full incident report including timeline, agent actions, response effectiveness, and lessons learned. This feeds into Sentinel's early warning calibration."
+  ],
+  intel: [
+    "Competitive landscape is clear — no competitors are exploiting this crisis. Interestingly, TechGroup posted a data governance piece yesterday, which may be coincidence or proactive positioning. I'm watching.",
+    "Benchmarking your crisis response against 12 industry peers: average response time is 34 minutes. Top performers respond within 18 minutes. Current elapsed time: 12 minutes. You're still ahead of curve.",
+    "Opportunity detected: competitors in the data consulting space show 18% lower brand sentiment this week. A well-crafted transparency response from you could convert some of their audience."
+  ],
+};
+
+let selectedAgent = 'guardian';
+let chatTyping = false;
+
+// ─── RENDER AGENTS ───────────────────────────────────────────────────────────
+function renderAgents() {
+  const container = document.getElementById('agents-list');
+  container.innerHTML = AGENTS.map(a => `
+    <div class="agent-card ${a.status === 'working' ? 'working' : a.status === 'alert' ? 'alert' : a.status === 'active' ? 'active' : ''}" id="agent-${a.id}" onclick="selectAgentChat('${a.id}')">
+      <div class="agent-header">
+        <div class="agent-emoji">${a.emoji}</div>
+        <div class="agent-info">
+          <div class="agent-name">${a.name}</div>
+          <div class="agent-role">${a.role}</div>
+        </div>
+        <div class="agent-status status-${a.status === 'active' || a.status === 'alert' ? (a.status === 'alert' ? 'alert' : 'active') : a.status}">${a.status.toUpperCase()}</div>
+      </div>
+      <div class="agent-task ${a.status !== 'idle' ? 'active-task' : ''}">${a.task}</div>
+      <div class="agent-progress"><div class="agent-progress-bar ${a.progColor}" style="width:${a.progress}%"></div></div>
+      <div class="agent-meta">
+        <span>Confidence: <span class="confidence">${a.conf}%</span></span>
+        <span>${a.status === 'idle' ? '—' : a.status === 'working' ? 'running…' : 'monitoring'}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── RENDER FEED ─────────────────────────────────────────────────────────────
+function renderFeed(events) {
+  const container = document.getElementById('feed-container');
+  container.innerHTML = events.map(e => `
+    <div class="feed-item">
+      <div class="feed-icon">${e.icon}</div>
+      <div class="feed-body">
+        <div class="feed-title">${e.title}</div>
+        <div class="feed-detail">${e.detail}</div>
+        <div class="feed-meta">
+          <span class="feed-agent">${e.agent}</span>
+          <span class="feed-time">${e.time}</span>
+          <span class="feed-sentiment ${e.sentiment === 'neg' ? 'sent-neg' : e.sentiment === 'pos' ? 'sent-pos' : 'sent-neu'}">${e.sentLabel}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── RENDER WORKFLOW ─────────────────────────────────────────────────────────
+function renderWorkflow() {
+  const container = document.getElementById('workflow-steps');
+  container.innerHTML = WORKFLOW_STEPS.map((s, i) => {
+    const isLast = i === WORKFLOW_STEPS.length - 1;
+    return `
+      <div class="wf-step">
+        <div class="wf-line-col">
+          <div class="wf-circle ${s.status}">${s.status === 'done' ? '✓' : s.status === 'running' ? '▶' : (i+1)}</div>
+          ${!isLast ? `<div class="wf-connector ${s.status === 'done' ? 'active' : ''}"></div>` : ''}
+        </div>
+        <div class="wf-content">
+          <div class="wf-title" style="color:${s.status==='done'?'var(--green)':s.status==='running'?'var(--accent2)':'var(--muted)'}">${s.title}</div>
+          <div class="wf-desc">${s.desc}</div>
+          <span class="wf-agent-tag">${s.agent}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ─── RENDER GOALS ─────────────────────────────────────────────────────────────
+function renderGoals() {
+  const container = document.getElementById('goals-container');
+  container.innerHTML = GOALS.map(g => `
+    <div class="goal-card">
+      <div class="goal-header">
+        <div class="goal-name">${g.name}</div>
+        <div class="goal-deadline">📅 ${g.deadline}</div>
+      </div>
+      <div class="goal-progress-wrap">
+        <div class="goal-progress-track"><div class="goal-progress-fill" style="width:${g.progress}%"></div></div>
+      </div>
+      <div class="goal-stats">
+        <span>Current: <span class="goal-stat-val">${g.current}</span></span>
+        <span>Target: <span class="goal-stat-val">${g.target}</span></span>
+        <span>Progress: <span class="goal-stat-val">${g.progress}%</span></span>
+      </div>
+      <div class="goal-agents">${g.agents.map(a=>`<span class="goal-agent-tag">${a}</span>`).join('')}</div>
+    </div>
+  `).join('');
+}
+
+// ─── RENDER APPROVALS ─────────────────────────────────────────────────────────
+function renderApprovals() {
+  const container = document.getElementById('approval-list');
+  container.innerHTML = APPROVALS.map(a => `
+    <div class="approval-card ${a.urgent ? 'urgent' : ''}" id="approval-${a.id}">
+      <div class="approval-header">
+        <div class="approval-type">${a.type}</div>
+        <div class="urgency urgency-${a.urgency}">${a.urgency.toUpperCase()}</div>
+      </div>
+      <div class="approval-title">${a.title}</div>
+      <div class="approval-desc">${a.desc}</div>
+      <div class="approval-preview">${a.preview}</div>
+      <div class="confidence-bar"><div class="confidence-fill ${a.confClass}" style="width:${a.conf}%"></div></div>
+      <div class="approval-conf-label">Agent confidence: ${a.conf}%</div>
+      <div class="approval-btns">
+        <button class="btn-approve" onclick="approveItem('${a.id}')">✓ Approve & Publish</button>
+        <button class="btn-edit">✏ Edit</button>
+        <button class="btn-reject" onclick="rejectItem('${a.id}')">✗ Reject</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── APPROVAL ACTIONS ─────────────────────────────────────────────────────────
+function approveItem(id) {
+  const el = document.getElementById('approval-'+id);
+  if (el) {
+    el.style.opacity = '0.4';
+    el.style.pointerEvents = 'none';
+    setTimeout(() => { el.remove(); updateQueueCount(); }, 300);
+  }
+  showToast('✅ Content approved and scheduled for publishing', 'success');
+  if (id === 'ap1') {
+    setTimeout(() => showToast('🛡 Guardian: X/Twitter reply published — monitoring response…', 'success'), 2000);
+    setTimeout(() => showToast('📈 Sentinel: Sentiment recovering — −45 → −31 in 3 min', 'warning'), 6000);
+  }
+}
+function rejectItem(id) {
+  const el = document.getElementById('approval-'+id);
+  if (el) {
+    el.style.opacity = '0.4';
+    el.style.pointerEvents = 'none';
+    setTimeout(() => { el.remove(); updateQueueCount(); }, 300);
+  }
+  showToast('↩ Content rejected — Strategist will revise draft', 'warning');
+}
+function updateQueueCount() {
+  const count = document.getElementById('approval-list').children.length;
+  document.getElementById('queue-count').textContent = count;
+  document.getElementById('approval-count').textContent = count + ' pending';
+}
+
+// ─── CRISIS WORKFLOW ──────────────────────────────────────────────────────────
+function activateCrisisWorkflow() {
+  switchTab('workflow', document.querySelector('.tab:nth-child(3)'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab')[2].classList.add('active');
+  showToast('🛡 Crisis Protocol activated — Guardian coordinating response', 'warning');
+}
+function dismissAlert() {
+  document.getElementById('alertbar').classList.add('hidden');
+}
+
+// ─── CHAT ─────────────────────────────────────────────────────────────────────
+function renderAgentSelector() {
+  const container = document.getElementById('agent-selector');
+  container.innerHTML = AGENTS.map(a => `
+    <button class="agent-sel-btn ${a.id === selectedAgent ? 'selected' : ''}" onclick="selectAgentChat('${a.id}')">${a.emoji} ${a.name}</button>
+  `).join('');
+}
+
+function selectAgentChat(id) {
+  selectedAgent = id;
+  renderAgentSelector();
+  const agent = AGENTS.find(a => a.id === id);
+  const msgs = document.getElementById('chat-messages');
+  if (msgs.children.length === 0) {
+    addAgentMessage(`Hello! I'm ${agent.name}, your ${agent.role}. How can I help you?`);
+  }
+}
+
+function addAgentMessage(text) {
+  const agent = AGENTS.find(a => a.id === selectedAgent);
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-agent';
+  div.innerHTML = `
+    <div class="msg-avatar">${agent.emoji}</div>
+    <div>
+      <div class="msg-bubble">${text}</div>
+      <div class="msg-meta">${agent.name} · ${new Date().toLocaleTimeString()}</div>
+    </div>
+  `;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addUserMessage(text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-user';
+  div.innerHTML = `
+    <div class="msg-avatar" style="background:var(--accent);color:#fff">E</div>
+    <div>
+      <div class="msg-bubble">${text}</div>
+      <div class="msg-meta">You · ${new Date().toLocaleTimeString()}</div>
+    </div>
+  `;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg msg-agent';
+  div.id = 'typing-indicator';
+  div.innerHTML = `
+    <div class="msg-avatar">${AGENTS.find(a=>a.id===selectedAgent).emoji}</div>
+    <div><div class="msg-bubble"><div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div></div>
+  `;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+function sendChat() {
+  if (chatTyping) return;
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = '';
+  addUserMessage(text);
+  chatTyping = true;
+  showTyping();
+  const responses = CHAT_RESPONSES[selectedAgent] || ['Processing your query…'];
+  const reply = responses[Math.floor(Math.random() * responses.length)];
+  setTimeout(() => {
+    hideTyping();
+    addAgentMessage(reply);
+    chatTyping = false;
+  }, 1200 + Math.random() * 800);
+}
+
+function chatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+}
+
+// ─── TAB SWITCHING ────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if (el) el.classList.add('active');
+  if (name === 'network') setTimeout(drawNetwork, 100);
+  if (name === 'chat') {
+    renderAgentSelector();
+    if (document.getElementById('chat-messages').children.length === 0) {
+      selectAgentChat(selectedAgent);
+    }
+  }
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+function showToast(msg, type) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  toast.textContent = msg;
+  container.appendChild(toast);
+  setTimeout(() => { toast.classList.add('toast-out'); setTimeout(() => toast.remove(), 300); }, 4000);
+}
+
+// ─── CLOCK ────────────────────────────────────────────────────────────────────
+function updateClock() {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString();
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ─── CHART ────────────────────────────────────────────────────────────────────
+function initChart() {
+  const labels = Array.from({length:30}, (_,i) => {
+    const d = new Date(); d.setDate(d.getDate() - 29 + i); return d.toLocaleDateString('it',{day:'2-digit',month:'2-digit'});
+  });
+  const baseScore = [71,72,70,73,74,72,71,73,75,74,76,75,77,76,78,77,79,78,80,79,81,80,82,81,83,82,80,81,80,80];
+  const ctx = document.getElementById('repChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Reputation Score',
+        data: baseScore,
+        borderColor: '#4f8ef7',
+        backgroundColor: 'rgba(79,142,247,0.08)',
+        borderWidth: 2,
+        fill: true,
+        tension: 0.4,
+        pointRadius: baseScore.map((v,i) => [5,12,18,25].includes(i) ? 5 : 0),
+        pointBackgroundColor: '#22d3a5',
+        pointBorderColor: '#22d3a5',
+      },{
+        label: 'Crisis Events',
+        data: labels.map((_,i) => [5,12,18,25].includes(i) ? baseScore[i] : null),
+        borderColor: 'transparent',
+        backgroundColor: '#f04f5e',
+        pointRadius: 7,
+        pointBackgroundColor: '#f04f5e',
+        type: 'scatter',
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#6b7a99', font:{size:10}, maxTicksLimit: 8 }, grid: { color: 'rgba(35,43,66,.5)' } },
+        y: { ticks: { color: '#6b7a99', font:{size:10} }, grid: { color: 'rgba(35,43,66,.5)' }, min: 65, max: 90 }
+      }
+    }
+  });
+}
+
+// ─── NETWORK CANVAS ───────────────────────────────────────────────────────────
+function drawNetwork() {
+  const canvas = document.getElementById('network-canvas');
+  const W = canvas.parentElement.clientWidth - 32;
+  const H = 380;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+
+  const nodes = [
+    { id:'sentinel',  x:.15, y:.25, emoji:'👁', color:'#f04f5e', label:'Sentinel',   active:true  },
+    { id:'guardian',  x:.15, y:.70, emoji:'🛡', color:'#4f8ef7', label:'Guardian',   active:true  },
+    { id:'analyst',   x:.38, y:.45, emoji:'🧠', color:'#7c5cfc', label:'Analyst',    active:true  },
+    { id:'strategist',x:.62, y:.45, emoji:'🎯', color:'#22d3a5', label:'Strategist', active:true  },
+    { id:'oracle',    x:.85, y:.25, emoji:'🔮', color:'#f59e42', label:'Oracle',     active:false },
+    { id:'intel',     x:.85, y:.70, emoji:'🕵', color:'#6b7a99', label:'Intel',      active:false },
+    { id:'narrator',  x:.50, y:.85, emoji:'📝', color:'#6b7a99', label:'Narrator',   active:false },
+    { id:'human',     x:.50, y:.12, emoji:'👤', color:'#e2e8f0', label:'Human',      active:false },
+  ];
+  const edges = [
+    ['sentinel','analyst',true], ['sentinel','guardian',true],
+    ['analyst','strategist',true], ['analyst','oracle',false],
+    ['guardian','strategist',true], ['guardian','human',true],
+    ['strategist','human',true], ['strategist','narrator',false],
+    ['oracle','strategist',false], ['intel','analyst',false],
+    ['intel','strategist',false],
+  ];
+
+  const px = id => nodes.find(n=>n.id===id).x * W;
+  const py = id => nodes.find(n=>n.id===id).y * H;
+
+  // Draw edges
+  edges.forEach(([a,b,active]) => {
+    ctx.beginPath();
+    ctx.moveTo(px(a), py(a));
+    ctx.lineTo(px(b), py(b));
+    ctx.strokeStyle = active ? 'rgba(79,142,247,0.4)' : 'rgba(107,122,153,0.15)';
+    ctx.lineWidth = active ? 2 : 1;
+    ctx.setLineDash(active ? [] : [4,4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    if (active) {
+      // Animated dot on edge
+      const t = (Date.now() % 2000) / 2000;
+      const dx = (px(b)-px(a))*t + px(a);
+      const dy = (py(b)-py(a))*t + py(a);
+      ctx.beginPath();
+      ctx.arc(dx, dy, 3, 0, Math.PI*2);
+      ctx.fillStyle = '#4f8ef7';
+      ctx.fill();
+    }
+  });
+
+  // Draw nodes
+  nodes.forEach(n => {
+    const x = n.x*W, y = n.y*H;
+    const r = n.id === 'human' ? 22 : 26;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI*2);
+    ctx.fillStyle = n.active ? (n.color+'22') : 'rgba(22,27,42,0.8)';
+    ctx.fill();
+    ctx.strokeStyle = n.active ? n.color : 'rgba(107,122,153,0.3)';
+    ctx.lineWidth = n.active ? 2 : 1;
+    ctx.stroke();
+    if (n.active) {
+      ctx.beginPath();
+      ctx.arc(x, y, r+5, 0, Math.PI*2);
+      ctx.strokeStyle = n.color+'33';
+      ctx.lineWidth = 6;
+      ctx.stroke();
+    }
+    ctx.font = n.id==='human' ? '16px sans-serif' : '18px sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(n.emoji, x, y);
+    ctx.font = '10px Segoe UI'; ctx.fillStyle = n.active ? '#e2e8f0' : '#6b7a99';
+    ctx.fillText(n.label, x, y + r + 12);
+  });
+
+  requestAnimationFrame(drawNetwork);
+}
+
+// ─── LIVE SIMULATION ──────────────────────────────────────────────────────────
+let scoreVal = 80.4;
+let mentionsVal = 2847;
+
+function simTick() {
+  // Slowly fluctuate score
+  scoreVal += (Math.random() - 0.52) * 0.2;
+  scoreVal = Math.max(78, Math.min(83, scoreVal));
+  document.getElementById('rep-score').textContent = scoreVal.toFixed(1);
+  document.getElementById('top-score').textContent = Math.round(scoreVal);
+
+  mentionsVal += Math.floor((Math.random() - 0.3) * 30);
+  document.getElementById('mentions-count').textContent = mentionsVal.toLocaleString();
+
+  // Occasionally add a new feed event
+  if (Math.random() < 0.2) {
+    const spontaneous = [
+      { icon:'📊', title:'Sentiment micro-update: Instagram +2', detail:'6 new positive brand mentions in the last 5 minutes. No anomalies.', agent:'Sentinel', time:'just now', sentiment:'pos', sentLabel:'+2' },
+      { icon:'🕵', title:'Competitor activity: TechGroup posted on LinkedIn', detail:'Monitoring sentiment impact. No negative cross-contamination detected.', agent:'Intel', time:'just now', sentiment:'neu', sentLabel:'watch' },
+      { icon:'🔮', title:'Forecast revised — recovery momentum improving', detail:'Rapid sentiment stabilization detected. Revised ETA to baseline: 32h → 18h.', agent:'Oracle', time:'just now', sentiment:'pos', sentLabel:'↑' },
+    ];
+    const evt = spontaneous[Math.floor(Math.random()*spontaneous.length)];
+    evt.time = 'just now';
+    FEED_EVENTS.unshift(evt);
+    if (FEED_EVENTS.length > 12) FEED_EVENTS.pop();
+    if (document.getElementById('tab-feed').classList.contains('active')) {
+      renderFeed(FEED_EVENTS);
+    }
+  }
+}
+
+setInterval(simTick, 3000);
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+renderAgents();
+renderFeed(FEED_EVENTS);
+renderWorkflow();
+renderGoals();
+renderApprovals();
+initChart();
+
+setTimeout(() => showToast('🛡 Guardian: Crisis Protocol activated — awaiting your approval', 'warning'), 2000);
+setTimeout(() => showToast('🔮 Oracle: If no response in 8 min, probability of mainstream pickup +34%', 'warning'), 8000);
+setTimeout(() => showToast('📈 Sentinel: X/Twitter sentiment showing slight recovery (-68 → -61)', 'success'), 18000);
+</script>
+</body>
+</html>
